@@ -1,6 +1,6 @@
 import pygame
 import sys
-import random
+from random import randint
 
 
 class Snake:
@@ -11,7 +11,7 @@ class Snake:
 
     def draw(self, surface):
         pygame.draw.rect(surface, self.colour,
-                         (SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 24, 24))
+                         (SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, GRID, GRID))
 
     @staticmethod
     def get_keys():
@@ -35,9 +35,26 @@ class Food(pygame.sprite.Sprite):
         super().__init__()
         self.image = pygame.image.load(pic_path)
         self.rect = self.image.get_rect()
-        self.position = self.rect.center = \
-            (random.randint(FOOD_PX, SCREEN_WIDTH - FOOD_PX),
-             random.randint(FOOD_PX, SCREEN_HEIGHT - FOOD_PX))
+        self.position = self.rect.center = self.spawn()
+
+    @staticmethod
+    def spawn():
+        """ Ensures initial spawn won't collide with snake in the middle """
+        exclude_x = [i for i in
+                     range(SCREEN_WIDTH // 2 - GRID, SCREEN_WIDTH // 2 + GRID)]
+        exclude_y = [i for i in
+                     range(SCREEN_HEIGHT // 2 - GRID,
+                           SCREEN_HEIGHT // 2 + GRID)]
+
+        x = randint(FOOD_PX, SCREEN_WIDTH - FOOD_PX)
+        y = randint(FOOD_PX, SCREEN_HEIGHT - FOOD_PX)
+        while x in exclude_x or y in exclude_y:
+            if x in exclude_x:
+                x = randint(FOOD_PX, SCREEN_WIDTH - FOOD_PX)
+            if y in exclude_y:
+                y = randint(FOOD_PX, SCREEN_HEIGHT - FOOD_PX)
+
+        return x, y
 
     def respawn(self):
         pass
