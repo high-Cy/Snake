@@ -10,6 +10,7 @@ class SNAKE:
         self.positions = [Vector2(5, 10), Vector2(4, 10), Vector2(3, 10)]
         self.direction = Vector2(1, 0)
         self.ate_food = False
+        self.sfx = pygame.mixer.Sound('bite.mp3')
         self.score = 0
 
     def draw(self):
@@ -27,6 +28,9 @@ class SNAKE:
             self.positions = self.positions[:]
             self.positions.insert(0, self.positions[0] + self.direction)
             self.ate_food = False
+
+    def play_sfx(self):
+        self.sfx.play()
 
 
 class FOOD(SNAKE):
@@ -79,6 +83,7 @@ class MAIN:
         if self.food.position == self.snake.positions[0]:
             self.snake.score += 1
             self.food.position = self.food.spawn(self.snake)
+            self.snake.play_sfx()
             self.snake.ate_food = True
 
     def check_lose(self):
