@@ -1,50 +1,52 @@
 import pygame
 import sys
 from random import randint
+from pygame.math import Vector2
 
 
 class Snake:
     def __init__(self):
         self.colour = (255, 255, 255)
-        self.length = 1
+        self.length = 3
+        self.positions = [Vector2(5, 10), Vector2(6, 10), Vector2(7, 10)]
+        self.direction = Vector2(0, 0)
         self.score = 0
 
-    def draw(self, surface):
-        pygame.draw.rect(surface, self.colour,
-                         (SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, GRID, GRID))
+    def draw(self):
+        for pos in self.positions:
+            pos_x = int(pos.x * GRID_SIZE)
+            pos_y = int(pos.y * GRID_SIZE)
+            pos_rect = pygame.Rect(pos_x, pos_y, GRID_SIZE, GRID_SIZE)
+            pygame.draw.rect(screen, self.colour, pos_rect)
 
-    @staticmethod
-    def get_keys():
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
-                    pass
-                elif event.key == pygame.K_DOWN:
-                    pass
-                elif event.key == pygame.K_LEFT:
-                    pass
-                elif event.key == pygame.K_RIGHT:
-                    pass
+    def move(self):
+        pos_copy = self.positions[:-1]
+        pos_copy.insert(0, pos_copy[0] + self.direction)
+        self.positions = pos_copy[:]
+        while len(self.positions) > self.length:
+            del self.positions[-1]
 
 
-class Food(pygame.sprite.Sprite):
-    def __init__(self, pic_path):
+class Food(pygame.sprite.Sprite, Snake):
+    def __init__(self, pic_path, snake_class):
         super().__init__()
         self.image = pygame.image.load(pic_path)
         self.rect = self.image.get_rect()
-        self.position = self.rect.center = self.spawn()
+        self.position = self.rect.center = self.spawn(snake_class)
 
     @staticmethod
-    def spawn():
-        """ Ensures initial spawn won't collide with snake in the middle """
-        exclude_x = [i for i in
-                     range(SCREEN_WIDTH // 2 - GRID, SCREEN_WIDTH // 2 + GRID)]
-        exclude_y = [i for i in
-                     range(SCREEN_HEIGHT // 2 - GRID,
-                           SCREEN_HEIGHT // 2 + GRID)]
+    def spawn(snake_class):
+        """ Ensures spawn won't collide with snake """
+
+        snake_x = snake_y = []
+        for pos in snake_class.positions:
+            snake_x.append(pos.x)
+            snake_y.append(pos.y)
+
+        exclude_x = exclude_y = []
+        for i in snake_x:  # , snake_y:
+            exclude_x.append(range(int(i) - GRID_SIZE, int(i) + GRID_SIZE))
+            # exclude_y.append(range(int(j) - GRID_SIZE, int(j) + GRID_SIZE))
 
         x = randint(FOOD_PX, SCREEN_WIDTH - FOOD_PX)
         y = randint(FOOD_PX, SCREEN_HEIGHT - FOOD_PX)
@@ -56,43 +58,58 @@ class Food(pygame.sprite.Sprite):
 
         return x, y
 
-    def respawn(self):
-        pass
 
+pygame.init()
 
-SIZE = SCREEN_WIDTH, SCREEN_HEIGHT = 500, 400
+FOOD_PX = GRID_SIZE = 32
+GRID_NUM = 20
+SIZE = SCREEN_WIDTH, SCREEN_HEIGHT = GRID_SIZE * GRID_NUM, GRID_SIZE * GRID_NUM
 
-FOOD_PX = GRID = 24
-GRID_WIDTH = SCREEN_WIDTH / GRID
-GRID_HEIGHT = SCREEN_HEIGHT / GRID
-
-food = Food('img/apple24px.png')
-food_group = pygame.sprite.Group()
-food_group.add(food)
+UP = Vector2(0, -1)
+DOWN = Vector2(0, 1)
+LEFT = Vector2(-1, 0)
+RIGHT = Vector2(1, 0)
 
 snake = Snake()
 
+food = Food('img/apple.png', snake)
+food_group = pygame.sprite.Group()
+food_group.add(food)
 
-def main():
-    pygame.init()
+screen = pygame.display.set_mode(SIZE)
+pygame.display.set_caption('Snake')
+icon = pygame.image.load('img/snake.png').convert_alpha()
+pygame.display.set_icon(icon)
 
-    screen = pygame.display.set_mode(SIZE)
-    pygame.display.set_caption('Snake')
-    icon = pygame.image.load('img/snake.png')
-    pygame.display.set_icon(icon)
+clock = pygame.time.Clock()
+SCREEN_UPDATE = pygame.USEREVENT
+pygame.time.set_timer(SCREEN_UPDATE, 150)
 
-    '''
-    surface = pygame.Surface(screen.get_size())
-    surface = surface.convert()
-    '''
-    while True:
-        pygame.display.flip()
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        if event.type == SCREEN_UPDATE:
+            snake.move()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                snake.direction = UP
+            elif event.key == pygame.K_DOWN:
+                snake.direction = DOWN
+            elif event.key == pygame.K_LEFT:
+                snake.direction = LEFT
+            elif event.key == pygame.K_RIGHT:
+                snake.direction = RIGHT
 
-        Snake.get_keys()
+    screen.fill((0, 0, 0))
 
-        snake.draw(screen)
-        food_group.draw(screen)
+    snake.draw()
 
+    food_group.draw(screen)
 
-if __name__ == '__main__':
-    main()
+    pygame.display.update()
+    clock.tick(60)
+
+# if __name__ == '__main__':
+#     main()
