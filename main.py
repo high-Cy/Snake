@@ -8,7 +8,7 @@ class Snake:
     def __init__(self):
         self.colour = (255, 255, 255)
         self.length = 3
-        self.positions = [Vector2(5, 10), Vector2(6, 10), Vector2(7, 10)]
+        self.positions = [Vector2(5, 10), Vector2(4, 10), Vector2(3, 10)]
         self.direction = Vector2(0, 0)
         self.score = 0
 
@@ -27,36 +27,36 @@ class Snake:
             del self.positions[-1]
 
 
-class Food(pygame.sprite.Sprite, Snake):
+class Food(Snake):
     def __init__(self, pic_path, snake_class):
         super().__init__()
         self.image = pygame.image.load(pic_path)
-        self.rect = self.image.get_rect()
-        self.position = self.rect.center = self.spawn(snake_class)
+        self.position = self.spawn(snake_class)
 
     @staticmethod
     def spawn(snake_class):
-        """ Ensures spawn won't collide with snake """
-
-        snake_x = snake_y = []
-        for pos in snake_class.positions:
-            snake_x.append(pos.x)
-            snake_y.append(pos.y)
+        """ Ensures food spawn won't collide with snake """
 
         exclude_x = exclude_y = []
-        for i in snake_x:  # , snake_y:
-            exclude_x.append(range(int(i) - GRID_SIZE, int(i) + GRID_SIZE))
-            # exclude_y.append(range(int(j) - GRID_SIZE, int(j) + GRID_SIZE))
+        for pos in snake_class.positions:
+            exclude_x.append(pos.x)
+            exclude_y.append(pos.y)
 
-        x = randint(FOOD_PX, SCREEN_WIDTH - FOOD_PX)
-        y = randint(FOOD_PX, SCREEN_HEIGHT - FOOD_PX)
+        x = randint(0, GRID_NUM - 1)
+        y = randint(0, GRID_NUM - 1)
         while x in exclude_x or y in exclude_y:
             if x in exclude_x:
-                x = randint(FOOD_PX, SCREEN_WIDTH - FOOD_PX)
+                x = randint(0, GRID_NUM - 1)
             if y in exclude_y:
-                y = randint(FOOD_PX, SCREEN_HEIGHT - FOOD_PX)
+                y = randint(0, GRID_NUM - 1)
 
-        return x, y
+        return Vector2(x, y)
+
+    def draw(self):
+        food_rect = pygame.Rect(int(self.position.x * GRID_SIZE),
+                                int(self.position.y * GRID_SIZE), GRID_SIZE,
+                                GRID_SIZE)
+        screen.blit(self.image, food_rect)
 
 
 pygame.init()
@@ -73,8 +73,6 @@ RIGHT = Vector2(1, 0)
 snake = Snake()
 
 food = Food('img/apple.png', snake)
-food_group = pygame.sprite.Group()
-food_group.add(food)
 
 screen = pygame.display.set_mode(SIZE)
 pygame.display.set_caption('Snake')
@@ -106,7 +104,7 @@ while True:
 
     snake.draw()
 
-    food_group.draw(screen)
+    food.draw()
 
     pygame.display.update()
     clock.tick(60)
