@@ -78,6 +78,7 @@ class MAIN:
     def draw(self):
         self.snake.draw()
         self.food.draw()
+        self.display_score()
 
     def check_collision(self):
         if self.food.position == self.snake.positions[0]:
@@ -102,6 +103,15 @@ class MAIN:
         pygame.quit()
         sys.exit()
 
+    def display_score(self):
+        score = f'Score: {str(self.snake.score)}'
+        score_surface = font.render(score, True, (250, 250, 250))
+        score_x = int(SCREEN_WIDTH - 60)
+        score_y = int(SCREEN_HEIGHT - 40)
+        score_rect = score_surface.get_rect(center=(score_x, score_y))
+
+        screen.blit(score_surface, score_rect)
+
 
 pygame.init()
 
@@ -115,11 +125,14 @@ LEFT = Vector2(-1, 0)
 RIGHT = Vector2(1, 0)
 
 screen = pygame.display.set_mode(SIZE)
+
 pygame.display.set_caption('Snake')
 icon = pygame.image.load('img/snake.png').convert_alpha()
 pygame.display.set_icon(icon)
 
+font = pygame.font.Font(None, 30)
 clock = pygame.time.Clock()
+
 SCREEN_UPDATE = pygame.USEREVENT
 pygame.time.set_timer(SCREEN_UPDATE, 150)
 
@@ -132,15 +145,23 @@ while True:
             sys.exit()
         if event.type == SCREEN_UPDATE:
             game.update()
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
-                game.snake.direction = UP
-            elif event.key == pygame.K_DOWN:
-                game.snake.direction = DOWN
-            elif event.key == pygame.K_LEFT:
-                game.snake.direction = LEFT
-            elif event.key == pygame.K_RIGHT:
-                game.snake.direction = RIGHT
+                if game.snake.direction.y != 1:
+                    game.snake.direction = UP
+
+            if event.key == pygame.K_DOWN:
+                if game.snake.direction.y != -1:
+                    game.snake.direction = DOWN
+
+            if event.key == pygame.K_LEFT:
+                if game.snake.direction.x != 1:
+                    game.snake.direction = LEFT
+
+            if event.key == pygame.K_RIGHT:
+                if game.snake.direction.x != -1:
+                    game.snake.direction = RIGHT
 
     screen.fill((0, 0, 0))
 
