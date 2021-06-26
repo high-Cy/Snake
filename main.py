@@ -69,6 +69,7 @@ class MAIN:
     def update(self):
         self.snake.move()
         self.check_collision()
+        self.check_lose()
 
     def draw(self):
         self.snake.draw()
@@ -79,6 +80,22 @@ class MAIN:
             self.snake.score += 1
             self.food.position = self.food.spawn(self.snake)
             self.snake.ate_food = True
+
+    def check_lose(self):
+        # touch border
+        if not (0 <= self.snake.positions[0].x < GRID_NUM) \
+                or not (0 <= self.snake.positions[0].y < GRID_NUM):
+            self.game_over()
+
+        # head touches body
+        for pos in self.snake.positions[1:]:
+            if pos == self.snake.positions[0]:
+                self.game_over()
+
+    @staticmethod
+    def game_over():
+        pygame.quit()
+        sys.exit()
 
 
 pygame.init()
@@ -91,7 +108,6 @@ UP = Vector2(0, -1)
 DOWN = Vector2(0, 1)
 LEFT = Vector2(-1, 0)
 RIGHT = Vector2(1, 0)
-
 
 screen = pygame.display.set_mode(SIZE)
 pygame.display.set_caption('Snake')
