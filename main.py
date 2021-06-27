@@ -10,7 +10,7 @@ class SNAKE:
         self.positions = [Vector2(5, 10), Vector2(4, 10), Vector2(3, 10)]
         self.direction = Vector2(1, 0)
         self.ate_food = False
-        self.sfx = pygame.mixer.Sound('bite.mp3')
+        self.sfx = pygame.mixer.Sound('sfx/bite.mp3')
         self.score = 0
 
     def draw_snake(self):
@@ -116,7 +116,7 @@ class MAIN:
         lose_rect = lose_surface.get_rect(center=(lose_x, lose_y))
 
         restart_font = pygame.font.Font(None, 32)
-        restart_surface = restart_font.render('Restart with arrow keys', True,
+        restart_surface = restart_font.render('Restart with Spacebar', True,
                                               (250, 250, 250))
         restart_x = lose_x
         restart_y = lose_y + 2 * GRID_SIZE
@@ -192,8 +192,9 @@ while True:
 
         if game.lose:
             if event.type == pygame.KEYDOWN:
-                game.lose = False
-                game.snake.reset()
+                if event.key ==pygame.K_SPACE:
+                    game.lose = False
+                    game.snake.reset()
 
     screen.fill((0, 0, 0))
 
