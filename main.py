@@ -13,7 +13,7 @@ class SNAKE:
         self.sfx = pygame.mixer.Sound('bite.mp3')
         self.score = 0
 
-    def draw(self):
+    def draw_snake(self):
         for pos in self.positions:
             pos_x = int(pos.x * GRID_SIZE)
             pos_y = int(pos.y * GRID_SIZE)
@@ -31,6 +31,11 @@ class SNAKE:
 
     def play_sfx(self):
         self.sfx.play()
+
+    def reset(self):
+        self.positions = [Vector2(5, 10), Vector2(4, 10), Vector2(3, 10)]
+        self.direction = Vector2(1, 0)
+        self.score = 0
 
 
 class FOOD(SNAKE):
@@ -58,7 +63,7 @@ class FOOD(SNAKE):
 
         return Vector2(x, y)
 
-    def draw(self):
+    def draw_food(self):
         food_rect = pygame.Rect(int(self.position.x * GRID_SIZE),
                                 int(self.position.y * GRID_SIZE),
                                 GRID_SIZE, GRID_SIZE)
@@ -69,6 +74,7 @@ class MAIN:
     def __init__(self):
         self.snake = SNAKE()
         self.food = FOOD('img/apple.png', self.snake)
+        self.lose = False
 
     def update(self):
         self.snake.move()
@@ -76,8 +82,8 @@ class MAIN:
         self.check_lose()
 
     def draw(self):
-        self.snake.draw()
-        self.food.draw()
+        self.snake.draw_snake()
+        self.food.draw_food()
         self.display_score()
 
     def check_collision(self):
@@ -98,14 +104,36 @@ class MAIN:
             if pos == self.snake.positions[0]:
                 self.game_over()
 
+    def game_over(self):
+        self.lose = True
+
     @staticmethod
-    def game_over():
-        pygame.quit()
-        sys.exit()
+    def game_over_menu():
+        lose_font = pygame.font.Font(None, 60)
+        lose_surface = lose_font.render('GAME OVER!', True, (250, 250, 250))
+        lose_x = int(SCREEN_WIDTH / 2)
+        lose_y = int(SCREEN_HEIGHT / 2 - 2 * GRID_SIZE)
+        lose_rect = lose_surface.get_rect(center=(lose_x, lose_y))
+
+        restart_font = pygame.font.Font(None, 32)
+        restart_surface = restart_font.render('Restart with arrow keys', True,
+                                              (250, 250, 250))
+        restart_x = lose_x
+        restart_y = lose_y + 2 * GRID_SIZE
+        restart_rect = restart_surface.get_rect(center=(restart_x, restart_y))
+
+        bg_rect = pygame.Rect(restart_rect.left - 5, restart_rect.top - 5,
+                              restart_rect.width + 10, restart_rect.height + 5)
+
+        pygame.draw.rect(screen, (93, 93, 93), bg_rect)
+        screen.blit(restart_surface, restart_rect)
+        screen.blit(lose_surface, lose_rect)
 
     def display_score(self):
+        score_font = pygame.font.Font(None, 30)
+
         score = f'Score: {str(self.snake.score)}'
-        score_surface = font.render(score, True, (250, 250, 250))
+        score_surface = score_font.render(score, True, (250, 250, 250))
         score_x = int(SCREEN_WIDTH - 60)
         score_y = int(SCREEN_HEIGHT - 40)
         score_rect = score_surface.get_rect(center=(score_x, score_y))
@@ -130,7 +158,6 @@ pygame.display.set_caption('Snake')
 icon = pygame.image.load('img/snake.png').convert_alpha()
 pygame.display.set_icon(icon)
 
-font = pygame.font.Font(None, 30)
 clock = pygame.time.Clock()
 
 SCREEN_UPDATE = pygame.USEREVENT
@@ -146,7 +173,7 @@ while True:
         if event.type == SCREEN_UPDATE:
             game.update()
 
-        if event.type == pygame.KEYDOWN:
+        if not game.lose and event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
                 if game.snake.direction.y != 1:
                     game.snake.direction = UP
@@ -163,9 +190,17 @@ while True:
                 if game.snake.direction.x != -1:
                     game.snake.direction = RIGHT
 
+        if game.lose:
+            if event.type == pygame.KEYDOWN:
+                game.lose = False
+                game.snake.reset()
+
     screen.fill((0, 0, 0))
 
     game.draw()
+
+    if game.lose:
+        game.game_over_menu()
 
     pygame.display.update()
     clock.tick(60)
