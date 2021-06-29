@@ -38,18 +38,17 @@ class SNAKE:
         self.score = 0
 
 
-class FOOD(SNAKE):
-    def __init__(self, pic_path, snake_class):
-        super().__init__()
+class FOOD:
+    def __init__(self, pic_path, snake_pos):
         self.image = pygame.image.load(pic_path)
-        self.position = self.spawn(snake_class)
+        self.position = self.spawn(snake_pos)
 
     @staticmethod
-    def spawn(snake_class):
+    def spawn(snake_pos):
         """ Ensures food spawn won't collide with snake """
 
         exclude_x = exclude_y = []
-        for pos in snake_class.positions:
+        for pos in snake_pos:
             exclude_x.append(pos.x)
             exclude_y.append(pos.y)
 
@@ -73,7 +72,7 @@ class FOOD(SNAKE):
 class MAIN:
     def __init__(self):
         self.snake = SNAKE()
-        self.food = FOOD('img/apple.png', self.snake)
+        self.food = FOOD('img/apple.png', self.snake.positions)
         self.lose = False
 
     def update(self):
@@ -89,7 +88,7 @@ class MAIN:
     def check_collision(self):
         if self.food.position == self.snake.positions[0]:
             self.snake.score += 1
-            self.food.position = self.food.spawn(self.snake)
+            self.food.position = self.food.spawn(self.snake.positions)
             self.snake.play_sfx()
             self.snake.ate_food = True
 
@@ -143,7 +142,7 @@ class MAIN:
 
 pygame.init()
 
-FOOD_PX = GRID_SIZE = 32
+GRID_SIZE = 32
 GRID_NUM = 20
 SIZE = SCREEN_WIDTH, SCREEN_HEIGHT = GRID_SIZE * GRID_NUM, GRID_SIZE * GRID_NUM
 
@@ -192,7 +191,7 @@ while True:
 
         if game.lose:
             if event.type == pygame.KEYDOWN:
-                if event.key ==pygame.K_SPACE:
+                if event.key == pygame.K_SPACE:
                     game.lose = False
                     game.snake.reset()
 
